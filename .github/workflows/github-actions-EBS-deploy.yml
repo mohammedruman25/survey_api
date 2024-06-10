@@ -1,0 +1,51 @@
+name: Deploy dev-deploy
+on:
+  push:
+    branches:
+    - dev-deploy
+env:
+  JAR_NAME: surveyapi.jar
+  ZIP_NAME: surveyapi.zip
+  JAR_SOURCE: ./target
+  DEPLOY_FOLDER: ./Deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout source code
+      uses: actions/checkout@v2
+    
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+
+    - name: maven
+      run: mvn clean package
+
+    - name: collect deploy package
+      run: cp $JAR_SOURCE/$JAR_NAME $DEPLOY_FOLDER
+
+    - name: Generate deployment package
+      working-directory: ${{ env.DEPLOY_FOLDER }}
+      run: zip -r $ZIP_NAME .
+    
+    - name: copy zip at root
+      working-directory: ${{ env.DEPLOY_FOLDER }}
+      run: cp $ZIP_NAME ../
+      
+    - name: Deploy to EB
+      uses: einaregilsson/beanstalk-deploy@v20
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: devenv-survey
+        environment_name: Devenvsurvey-env
+        version_label: ${{ github.sha }}
+        region: ap-south-1
+        deployment_package: ${{ env.ZIP_NAME }}
+        wait_for_environment_recovery: 120
