@@ -3,6 +3,9 @@ package com.survey.api.surveyactivity.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.survey.api.ruleengine.repo.SurveyReleaseMappingRepoOPEN;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +40,9 @@ public class ActivityMobileReportService {
 
 	@Autowired
 	SurveyReleaseMappingRepoENTITY surveyReleaseMappingEntityRepo;
+
+	@Autowired
+	SurveyReleaseMappingRepoOPEN surveyReleaseMappingOpenRepo;
 
 	@Autowired
 	SurveyRepo surveyRepo;
@@ -214,6 +220,60 @@ public class ActivityMobileReportService {
 		
 		return result;
 	}
-	
+
+	private List<Long> getSubordinateDesignations(Long designationId) {
+		List<Long> designations = new ArrayList<>();
+		if (designationId == 1) { // State Manager
+			designations.add(1L);
+			designations.add(2L);
+			designations.add(3L);
+			designations.add(4L);
+			designations.add(5L);
+		} else if (designationId == 2) { // District Manager
+			designations.add(2L);
+			designations.add(3L);
+			designations.add(4L);
+			designations.add(5L);
+		} else if (designationId == 3) { // Block Manager
+			designations.add(3L);
+			designations.add(4L);
+			designations.add(5L);
+		} else if (designationId == 4) { // Cluster Manager
+			designations.add(4L);
+			designations.add(5L);
+		} else if (designationId == 5) { // School Manager
+			designations.add(5L);
+		}
+		return designations;
+	}
+
+	public JSONObject getCustomSurveysByDesignation(Long designationId, Long regionId){
+		if (designationId == null) {
+			throw new BadRequestException("Designation of User is Null");
+		}
+		if (regionId == null) {
+			throw new BadRequestException("No Region Data is assigned to user");
+		}
+
+		JSONObject finalResponse = new JSONObject();
+		finalResponse.put("responseCode",200);
+
+		String[] designationNames = {"State", "District", "Block", "Cluster", "School"};
+
+		for (long i = designationId; i <= 5; i++) {
+			List<ActivityReportDto> profileReports = getAllProfileActivityReport(i, regionId);
+			List<ActivityReportDto> entityReports = getAllEntityActivityReport(i, regionId);
+
+			JSONObject surveys = new JSONObject();
+			surveys.put("profileReports", profileReports);
+			surveys.put("entityReports", entityReports);
+
+			String key = "surveysBy" + designationNames[(int) (i-1)];
+			finalResponse.put(key, surveys);
+		}
+
+		return finalResponse;
+	}
+
 
 }

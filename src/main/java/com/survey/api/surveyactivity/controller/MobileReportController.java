@@ -2,6 +2,7 @@ package com.survey.api.surveyactivity.controller;
 
 import java.util.List;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,23 @@ public class MobileReportController {
 		ActivityReportSurveyAnswerDTO result = activityMobileReportService.getmobileSurveyReport(userPrincipal.getId(),dto,userDesignationId,userRegionId);
     	return ResponseEntity.ok(new Response(HttpStatus.OK.value(), result) );
     	
+	}
+
+	@ApiOperation(
+			value = "This is used to get a list of Completed Activities for the Mobile App. It returns the activities of users of lower hierarchy",
+			response = ActivityDto.class,
+			responseContainer = "List"
+	)
+	@GetMapping("/others")
+	public ResponseEntity<?> getAllOthersActivityReport(Authentication authentication) {
+
+		UserAuthDetails userPrincipal = (UserAuthDetails) authentication.getPrincipal();
+		Long userDesignationId = userPrincipal.getDesignationType().getId();
+		Long userRegionId = userPrincipal.getRegionData().getId();
+
+		JSONObject customSurveysByDesignation = activityMobileReportService.getCustomSurveysByDesignation(userDesignationId, userRegionId);
+		return ResponseEntity.ok( customSurveysByDesignation.toMap() );
+
 	}
 	
 	

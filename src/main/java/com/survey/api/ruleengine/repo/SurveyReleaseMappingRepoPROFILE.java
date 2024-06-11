@@ -12,11 +12,6 @@ import com.survey.api.ruleengine.entity.SurveyReleaseMappingDataPROFILE;
 @Repository
 public interface SurveyReleaseMappingRepoPROFILE extends JpaRepository<SurveyReleaseMappingDataPROFILE, Long> {
 
-	
-	
-	
-	
-	
 	@Query(value = "SELECT survey_id FROM SURVEY_RELEASE_MAPPING_DATA_PROFILE r WHERE r.target_designation_id = ?1 and r.target_region_data_id =?2 and r.is_survey_answered = ?3 and r.is_survey_expired = false",  nativeQuery = true)
 	List<Long> findAllIncompleteSurveyIdByDesignationAndRegion(Long designationId, Long regionDataId, Boolean isSurveyAnswered);
 
